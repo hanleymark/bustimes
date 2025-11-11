@@ -7,7 +7,9 @@ import math
 import urequests as requests
 import ntptime
 from presto import Presto
-import config   # <-- import settings from config.py
+import config
+
+print(f"Config: SSID={config.WIFI_SSID}, TFL_KEY={config.TFL_APP_KEY}")
 
 # --- Setup ---
 presto = Presto()
@@ -36,10 +38,10 @@ BROWN = display.create_pen(139, 69, 19)
 BASE_URL = "https://api.tfl.gov.uk"
 
 # --- Helper functions ---
-def show_message(text):
+def show_message(text, colour = WHITE):
     display.set_pen(BLACK)
     display.clear()
-    display.set_pen(WHITE)
+    display.set_pen(colour)
     display.text(str(text), 5, 10, WIDTH, 2)
     presto.update()
 
@@ -79,32 +81,33 @@ def fetch_arrivals(stop_id):
 def minutes_from_seconds(s):
     if s < 30:
         return "due"
-    return f"{math.floor(s/60)} min"
+    return f"{math.floor(s/60)}"
 
-def draw_arrivals(arrivals):
+def draw_arrivals(stopData):
     display.set_pen(BLACK)
     display.clear()
     y = 10
 
-    if not arrivals:
+    if not stopData:
         display.set_pen(WHITE)
         display.text("No data", 10, y, WIDTH, 2)
         presto.update()
         return
 
-    display.set_pen(RED)
-    display.text(arrivals[0].get("stationName", "Bus Stop"), 10, y, WIDTH, 2)
-    y += 25
-
-    display.set_pen(WHITE)
-    for a in arrivals[:config.MAX_PER_STOP]:
-        line = a.get("lineName", "?")
-        stop = a.get("platformName", "")
-        dest = a.get("destinationName", "").split(" - ")[0]
-        mins = minutes_from_seconds(a.get("timeToStation", 0))
-        text = f"{line} {dest[:16]} {mins}"
-        display.text(text, 10, y, WIDTH, 2)
-        y += 20
+    for s in stopData:
+        arrivals = s.get("arrivals", [])
+        display.set_pen(RED)
+        display.text(s.get("stopId", "Bus Stop"), 10, y, WIDTH, 2)
+        y += 25
+        for a in arrivals[:config.MAX_PER_STOP]:
+            line = a.get("lineName", "?")
+            stop = a.get("platformName", "")
+            dest = a.get("destinationName", "").split(" - ")[0]
+            mins = minutes_from_seconds(a.get("timeToStation", 0))
+            text = f"{line} {dest[:16]} {mins}"
+            display.set_pen(WHITE)
+            display.text(text, 10, y, WIDTH, 2)
+            y += 20
 
     presto.update()
 
@@ -116,10 +119,17 @@ try:
 except OSError:
     show_message("Could not sync time")
 
-arrivals = []
 while True:
-    for stop in config.STOPPOINT_IDS:
+    stopData = []
+    for naptan in config.STOPPOINT_IDS:
         show_status("Fetching buses...")
-        arrivals.extend(fetch_arrivals(stop))
-    draw_arrivals(arrivals)
+        arrivals = fetch_arrivals(naptan)
+        stopName = arrivals[0]["platformName"] if arrivals else naptan
+        stopData.append({
+            "stopId": stopName,
+            "arrivals": arrivals
+        })
+    display.set_pen(BLACK)
+    display.clear()
+    draw_arrivals(stopData)
     time.sleep(config.UPDATE_INTERVAL)
