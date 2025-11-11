@@ -1,0 +1,11 @@
+# Secrets
+secrets.py
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+.micropico
+.vscode/settings.json
