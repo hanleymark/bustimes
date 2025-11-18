@@ -9,7 +9,10 @@ MAX_PER_STOP = 4           # how many arrivals to show for each stop
 UPDATE_INTERVAL = 60       # update interval (seconds)
 
 # Bus stop IDs to monitor
-STOPPOINT_IDS = [
-    "490016290W",
-    "490016290E",
+BUS_STOPS = [
+    {"id": "490016290W", "showName": True, "showDestination": True, "showCountdown": True},
+    {"id": "490016290E", "showName": True, "showDestination": True, "showCountdown": True},
+    
 ]
+# 490007176N
+# 490007176S

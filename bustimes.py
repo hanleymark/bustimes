@@ -9,8 +9,6 @@ import ntptime
 from presto import Presto
 import config
 
-print(f"Config: SSID={config.WIFI_SSID}, TFL_KEY={config.TFL_APP_KEY}")
-
 # --- Setup ---
 presto = Presto()
 display = presto.display
@@ -51,11 +49,11 @@ def show_status(text, colour = WHITE):
     presto.update()
 
 def wifi_connect():
-    show_message("Connecting Wi-Fi...")
+    show_status("Connecting Wi-Fi...")
     try:
         presto.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
     except Exception as e:
-        show_message("Wi-Fi error:\n" + str(e))
+        show_status("Wi-Fi error:\n" + str(e))
         while True:
             time.sleep(1)
 
