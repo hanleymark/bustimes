@@ -35,18 +35,21 @@ BROWN = display.create_pen(139, 69, 19)
 
 BASE_URL = "https://api.tfl.gov.uk"
 
+
 # --- Helper functions ---
-def show_message(text, colour = WHITE):
+def show_message(text, colour=WHITE):
     display.set_pen(BLACK)
     display.clear()
     display.set_pen(colour)
     display.text(str(text), 5, 10, WIDTH, 2)
     presto.update()
 
-def show_status(text, colour = WHITE):
+
+def show_status(text, colour=WHITE):
     display.set_pen(colour)
     display.text(str(text), 0, HEIGHT - 20, WIDTH, 1)
     presto.update()
+
 
 def wifi_connect():
     show_status("Connecting Wi-Fi...")
@@ -56,6 +59,7 @@ def wifi_connect():
         show_status("Wi-Fi error:\n" + str(e))
         while True:
             time.sleep(1)
+
 
 def fetch_arrivals(stop_id):
     url = f"{BASE_URL}/stoppoint/{stop_id}/arrivals?app_key={config.TFL_APP_KEY}"
@@ -76,10 +80,12 @@ def fetch_arrivals(stop_id):
         except:
             pass
 
+
 def minutes_from_seconds(s):
     if s < 30:
         return "due"
     return f"{math.floor(s/60)}"
+
 
 def draw_arrivals(stopData):
     display.set_pen(BLACK)
@@ -97,7 +103,7 @@ def draw_arrivals(stopData):
         display.set_pen(RED)
         display.text(s.get("stopId", "Bus Stop"), 10, y, WIDTH, 2)
         y += 25
-        for a in arrivals[:config.MAX_PER_STOP]:
+        for a in arrivals[: config.MAX_PER_STOP]:
             line = a.get("lineName", "?")
             stop = a.get("platformName", "")
             dest = a.get("destinationName", "").split(" - ")[0]
@@ -109,6 +115,7 @@ def draw_arrivals(stopData):
 
     presto.update()
 
+
 # --- Main logic ---
 wifi_connect()
 
@@ -119,14 +126,11 @@ except OSError:
 
 while True:
     stopData = []
-    for naptan in config.STOPPOINT_IDS:
+    for bus in config.BUS_STOPS:
         show_status("Fetching buses...")
-        arrivals = fetch_arrivals(naptan)
+        arrivals = fetch_arrivals(bus["id"])
         stopName = arrivals[0]["platformName"] if arrivals else naptan
-        stopData.append({
-            "stopId": stopName,
-            "arrivals": arrivals
-        })
+        stopData.append({"stopId": stopName, "arrivals": arrivals})
     display.set_pen(BLACK)
     display.clear()
     draw_arrivals(stopData)
